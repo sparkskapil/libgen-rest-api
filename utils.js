@@ -29,6 +29,9 @@ function htmlToBooksArray(html) {
       if (currentColumn == 'Mirrors') {
         let mirror = $(`body > table.c > tbody > tr:nth-child(${j + 2}) > td:nth-child(10) > a`).attr("href");
         books[j][currentColumn] = mirror;
+        let server = mirror.substr(7);
+        server = server.substr(0, server.indexOf('/'));
+        books[j]['server'] = `http://${server}`;
       } else {
         books[j][currentColumn] = data[i][j];
       }
@@ -40,12 +43,10 @@ function htmlToBooksArray(html) {
 async function getDownloadLink(book) {
   const response = await axios.get(book.Mirrors);
   const $ = cheerio.load(response.data);
-  let server = book.Mirrors.substr(7);
-  server = server.substr(0, server.indexOf('/'));
   const downloadLink = $('#info > h2 > a').attr('href');
   const filename = $('#info > h1').text();
 
-  return { Filename: `${filename}.${book.Extension}`, Downloadlink: `http://${server}${downloadLink}` };
+  return { Filename: `${filename}.${book.Extension}`, Downloadlink: `${book.server}${downloadLink}` };
 }
 
 async function downloadEbook(book) {
@@ -79,6 +80,21 @@ async function downloadEbook(book) {
   })
 }
 
+async function getAdditionalInfo(books) {
+  const fields = ['coverurl', 'md5'].join(',');
+  const ids = books.map((book) => {
+    return `${book.ID}`;
+  }).join(',');
+  const url = `http://gen.lib.rus.ec/json.php?ids=${ids}&fields=${fields}`;
+  const response = await axios.get(url);
+  for (let i = 0; i < response.data.length; i++) {
+    const cover = response.data[i].coverurl;
+    books[i].cover = `${books[i].server}/covers/${cover}`;
+    books[i].md5 = response.data[i].md5;
+  }
+  return books;
+}
+
 async function getEbooks(query) {
   const { req, page = 1, multi = false } = query;
   const url = `http://gen.lib.rus.ec/search.php?req=${encodeURIComponent(req)}`;
@@ -92,8 +108,7 @@ async function getEbooks(query) {
     const response = await axios.get(`${url}&page=${page}`);
     books = htmlToBooksArray(response.data);
   }
-  return books;
+  return await getAdditionalInfo(books);
 }
-
 
 module.exports = { getDownloadLink, getEbooks, downloadEbook };
