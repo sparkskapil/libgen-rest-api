@@ -11,7 +11,7 @@ async function getEbookList(req, res) {
 }
 
 async function getDownloadLink(req, res) {
-  if (!req.query || !req.query.req) {
+  if (!req.query || !req.query.Mirrors || !req.query.Extension) {
     res.status(200);
     return res.json({ err: 'Query string required!' });
   }
