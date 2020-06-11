@@ -46,7 +46,7 @@ async function getDownloadLink(book) {
   const downloadLink = $('#info > h2 > a').attr('href');
   const filename = $('#info > h1').text();
 
-  return { Filename: `${filename}.${book.Extension}`, Downloadlink: `${book.server}${downloadLink}` };
+  return { Filename: `${filename}.${book.Extension}`, Downloadlink: `${downloadLink}` };
 }
 
 async function downloadEbook(book) {

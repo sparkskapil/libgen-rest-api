@@ -76,7 +76,7 @@ When using on localhost it will deploy itself on port 8080. Let us assume the se
 
   4. Getting direct download link for an eBook in the search result.
 
-      `GET http://localhost:8080/download?Mirrors=http://93.174.95.29/_ads/59E8EC2D632CEC7CEDF38141EE21CA6F&Extension=djvu&server=http://93.174.95.29`
+      `GET http://localhost:8080/download?Mirrors=http://93.174.95.29/_ads/59E8EC2D632CEC7CEDF38141EE21CA6F&Extension=djvu`
 
       * This link will get the download link for the above mentioned eBook in the response example.
 
