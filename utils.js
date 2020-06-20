@@ -85,8 +85,11 @@ async function getAdditionalInfo(books) {
   const ids = books.map((book) => {
     return `${book.ID}`;
   }).join(',');
+  if(ids.length == 0)
+    return books;
+
   const url = `http://gen.lib.rus.ec/json.php?ids=${ids}&fields=${fields}`;
-  const response = await axios.get(url);
+  const response = await axios.get(url).catch(e=>{});
   for (let i = 0; i < response.data.length; i++) {
     const cover = response.data[i].coverurl;
     books[i].cover = `${books[i].server}/covers/${cover}`;
@@ -97,6 +100,7 @@ async function getAdditionalInfo(books) {
 
 async function getEbooks(query) {
   const { req, page = 1, multi = false } = query;
+  console.log(req);
   const url = `http://gen.lib.rus.ec/search.php?req=${encodeURIComponent(req)}`;
   let books = [];
   if (multi) {
@@ -105,7 +109,7 @@ async function getEbooks(query) {
       books = books.concat(htmlToBooksArray(response.data));
     }
   } else {
-    const response = await axios.get(`${url}&page=${page}`);
+    const response = await axios.get(`${url}&page=${page}`).catch(e=>{});
     books = htmlToBooksArray(response.data);
   }
   return await getAdditionalInfo(books);
