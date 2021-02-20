@@ -43,10 +43,19 @@ function htmlToBooksArray(html) {
 async function getDownloadLink(book) {
   const response = await axios.get(book.Mirrors);
   const $ = cheerio.load(response.data);
-  const downloadLink = $('#info > h2 > a').attr('href');
   const filename = $('#info > h1').text();
 
-  return { Filename: `${filename}.${book.Extension}`, Downloadlink: `${downloadLink}` };
+  const md5 = book.Mirrors.split('/').splice(-1).pop();
+
+  const links = $('#info').find('a');
+  for (let i = 0; i < links.length; i++) {
+    const url = $(links[i]).attr('href');
+    if (url && url.toLowerCase().includes(md5.toLowerCase())) {
+      return { Filename: `${filename}.${book.Extension}`, Downloadlink: `${url}` };
+    }
+  }
+  
+  return { Filename: `${filename}.${book.Extension}`, Downloadlink: null };
 }
 
 async function downloadEbook(book) {
@@ -85,11 +94,11 @@ async function getAdditionalInfo(books) {
   const ids = books.map((book) => {
     return `${book.ID}`;
   }).join(',');
-  if(ids.length == 0)
+  if (ids.length == 0)
     return books;
 
   const url = `http://gen.lib.rus.ec/json.php?ids=${ids}&fields=${fields}`;
-  const response = await axios.get(url).catch(e=>{});
+  const response = await axios.get(url).catch(e => { });
   for (let i = 0; i < response.data.length; i++) {
     const cover = response.data[i].coverurl;
     books[i].cover = `${books[i].server}/covers/${cover}`;
@@ -106,11 +115,13 @@ async function getEbooks(query) {
   if (multi) {
     for (let i = 0; i < page; i++) {
       const response = await axios.get(`${url}&page=${i + 1}`);
-      books = books.concat(htmlToBooksArray(response.data));
+      if (response)
+        books = books.concat(htmlToBooksArray(response.data));
     }
   } else {
-    const response = await axios.get(`${url}&page=${page}`).catch(e=>{});
-    books = htmlToBooksArray(response.data);
+    const response = await axios.get(`${url}&page=${page}`);
+    if (response)
+      books = htmlToBooksArray(response.data);
   }
   return await getAdditionalInfo(books);
 }
