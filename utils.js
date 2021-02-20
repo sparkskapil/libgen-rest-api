@@ -46,15 +46,16 @@ async function getDownloadLink(book) {
   const filename = $('#info > h1').text();
 
   const md5 = book.Mirrors.split('/').splice(-1).pop();
-
+  console.log(md5);
   const links = $('#info').find('a');
   for (let i = 0; i < links.length; i++) {
     const url = $(links[i]).attr('href');
+    console.log(url);
     if (url && url.toLowerCase().includes(md5.toLowerCase())) {
       return { Filename: `${filename}.${book.Extension}`, Downloadlink: `${url}` };
     }
   }
-  
+
   return { Filename: `${filename}.${book.Extension}`, Downloadlink: null };
 }
 
